@@ -1,0 +1,42 @@
+Objectives:
+     - transmit real time data to MAX/SC efficiently
+     - everything should be possible (ie. send all locations, velocities, etc)
+     - easy to use in MAX
+
+Design:
+     - use OSC message prefixes
+     - can use OSC-Select in max to route
+     - can overlay processed data (such as step seq notes), to allow easier interfacing to some blocks
+
+OSC Messages from VT (vision tracker)
+
+/vt/started - when VT starts 
+
+/vt/stopped - when VT stops
+
+/vt/update samp t target x y vx vy group - update position of target
+     samp - sample number
+     t - time of sample (elapsed time in seconds since beginning of run)
+     target - UID of target
+     x,y - position within field in units - increasing in value towards right and down
+     vx,vy - estimate of velocity in m/s
+
+/vt/entry samp t target - new target entered VT
+     sent before first /vt/update message for that target
+
+/vt/exit samp t target - target exitted VT
+
+/vt/set/parameter value - send value of various parameters
+     minx, miny, maxx, maxy - bounds of VT in units
+     ntargets - number of people currently present
+
+/vt/pass/obj - commands to pass through to another object type
+
+
+OSC Messages to VT:
+/vt/dump - ask VT to send setup
+
+/vt/adddest host port - add destination for data stream
+
+/vt/rmdest host port - remove destination
+
