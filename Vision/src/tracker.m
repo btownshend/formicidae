@@ -9,6 +9,7 @@ tracks = initializeTracks(); % Create an empty array of tracks.
 
 nextId = 1; % ID of the next track
 fcnt=0;
+fid = fopen('log.txt', 'at');
 
 % Detect moving objects, and track them across video frames.
 %while ~isDone(obj.reader)
@@ -166,7 +167,7 @@ end
         end
         
         % Solve the assignment problem.
-        costOfNonAssignment = 10;
+        costOfNonAssignment = 80;
         [assignments, unassignedTracks, unassignedDetections] = ...
             assignDetectionsToTracks(cost, costOfNonAssignment);
     end
@@ -324,8 +325,10 @@ end
                 for i=1:length(reliableTracks)
                   r=reliableTracks(i);
                   bb=double(r.bbox);
-                  fprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,elapsed(),r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
-                  oscmsgout('VA','/vt/update',{fcnt,elapsed(),r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
+                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,elapsed(),r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
+                  fprintf(out);
+                  fprintf(fid, out);
+                  oscmsgout({'VA','PM','VD'},'/vt/update',{fcnt,elapsed(),r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
                 end
             end
         end
