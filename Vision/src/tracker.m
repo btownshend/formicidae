@@ -235,11 +235,12 @@ end
         
         for i=find(lostInds)
           fprintf('/vt/exit,%d,%f,%d\n', fcnt,elapsed(),tracks(i).id);
-          oscmsgout('VA','/vt/exit',{fcnt,elapsed(),tracks(i).id});
+          oscmsgout({'VA','PM','VD'},'/vt/exit',{int32(fcnt),elapsed(),int32(tracks(i).id)});
         end
 
         % Delete lost tracks.
         tracks = tracks(~lostInds);
+        oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
     end
 % Create New Tracks
 
@@ -274,6 +275,7 @@ end
             % Increment the next id.
             nextId = nextId + 1;
         end
+        oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
     end
 % Display Tracking Results
 
