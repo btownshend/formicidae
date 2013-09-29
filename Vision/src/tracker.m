@@ -3,6 +3,7 @@ function tracker()
 % and displaying the results.
 obj = setupSystemObjects();
 warning('off','MATLAB:imagesci:jpg:libraryMessage');
+starttime=now;
 
 tracks = initializeTracks(); % Create an empty array of tracks.
 
@@ -232,8 +233,8 @@ end
             [tracks(:).consecutiveInvisibleCount] >= invisibleForTooLong;
         
         for i=find(lostInds)
-          fprintf('/vt/exit,%d,%d\n', fcnt,tracks(i).id);
-          oscmsgout('VA','/vt/exit',{fcnt,tracks(i).id});
+          fprintf('/vt/exit,%d,%f,%d\n', fcnt,elapsed(),tracks(i).id);
+          oscmsgout('VA','/vt/exit',{fcnt,elapsed(),tracks(i).id});
         end
 
         % Delete lost tracks.
@@ -267,8 +268,8 @@ end
             
             % Add it to the array of tracks.
             tracks(end + 1) = newTrack;
-            fprintf('/vt/entry,%d,%d\n', fcnt,tracks(end).id);
-            oscmsgout('VA','/vt/entry',{fcnt,tracks(end).id});
+            fprintf('/vt/entry,%d,%f,%d\n', fcnt,elapsed(),tracks(end).id);
+            oscmsgout('VA','/vt/entry',{fcnt,elapsed(),tracks(end).id});
             % Increment the next id.
             nextId = nextId + 1;
         end
@@ -323,8 +324,8 @@ end
                 for i=1:length(reliableTracks)
                   r=reliableTracks(i);
                   bb=double(r.bbox);
-                  fprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,now,r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
-                  oscmsgout('VA','/vt/update',{fcnt,now,r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
+                  fprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,elapsed(),r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
+                  oscmsgout('VA','/vt/update',{fcnt,elapsed(),r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
                 end
             end
         end
@@ -334,6 +335,8 @@ end
         obj.videoPlayer.step(frame);
     end
 
-
+    function t=elapsed() 
+      t=(now-starttime)*24*3600;
+    end
 end
 
