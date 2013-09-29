@@ -28,3 +28,7 @@
   content: "";
   padding: 0;
 }
+
+.tracking-box {
+  background-color: lightgray;
+}

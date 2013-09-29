@@ -22,3 +22,9 @@ div.row
               //- span &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               //- span Follow &nbsp;
               //- input(type="radio", ng-model="trackingMode", value="1", ng-click="setTrackingMode()") Follow
+        div.control-group
+          h4.control-label Keyboard control
+          div.controls
+            input(on-keyup-fn="handleKeypress").input-lrg
+
+  canvas(id="myCanvas",width="640", height="480", ng-show="false").tracking-box

@@ -28,8 +28,13 @@ module.exports.init = function (socket) {
 
   });
 
+  socket.on('mouseevent', function(data) {
+    console.log("mouseevent: ");
+  });
+
   // clean up when we are finished with an individual connection
   socket.on('disconnect', function () {
+    console.log("disconnect");
     // TODO cleanup
   });
 };

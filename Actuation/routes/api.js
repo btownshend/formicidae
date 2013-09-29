@@ -139,12 +139,15 @@ var connected = false;
 
 var desiredX = 0;
 var desiredY = 0;
+var bedSizeX = 240;
+var bedSizeY = 190;
 var currX = 0;
-var currY = 0;
-var bedSizeX = 260;
-var bedSizeY = 230;
-var stepSize = 5;
+var currY = bedSizeY;
+var stepSize = 10;
 var lastCommandTime = 0;
+var timeLimiter = 100;
+
+var printRawUpdate = false;
 
 function handleUpdate(update) {
 
@@ -152,12 +155,16 @@ function handleUpdate(update) {
     handleTrackingModeFollowUpdate(update);
   }
 
+  if (printRawUpdate) {
+    console.log(update);
+  }
+
 }
 
 function handleTrackingModeFollowUpdate(update) {
-  if (connected && new Date().getTime() - lastCommandTime > 1000) {
+  if (connected && new Date().getTime() - lastCommandTime > timeLimiter) {
     desiredX = update.x * bedSizeX;
-    desiredY = update.y * bedSizeY;
+    desiredY = (-1) * update.y * bedSizeY;
 
     var diffX = desiredX - currX;
     var diffY = desiredY - currY;
@@ -175,24 +182,43 @@ function handleTrackingModeFollowUpdate(update) {
     var moveAmountX = stepSize * directionX;
     var moveAmountY = stepSize * directionY;
 
-    if (Math.abs(desiredX - currX + moveAmountX) > stepSize) { // make sure we need to move at all
+    var updateOccurred = false;
+
+    if (Math.abs(desiredX - currX) > stepSize) { // make sure we need to move at all
       if (currX + moveAmountX >= 0 && currX + moveAmountX <= bedSizeX) { // make sure we won't go outside our bed
         currX += moveAmountX;        
-        console.log("moveX: " + moveAmountX + "  currPositionX: " + currX);
-        sendCommand('move X ' + moveAmountX + ' 5000');
+        //console.log("moveX: " + moveAmountX + "  currPositionX: " + currX);
+        sendCommand('move X ' + moveAmountX + ' 8000');
         //lastCommandTime = new Date().getTime();
+        updateOccurred = true;
       }
 
     }
 
-    if (Math.abs(desiredY - currY + moveAmountY) > stepSize) { // make sure we need to move at all
-      if (currY + moveAmountY >= 0 && currY + moveAmountY <= bedSizeY) { // make sure we won't go outside our bed
+    if (Math.abs(desiredY - currY) > stepSize) { // make sure we need to move at all
+      if (currY + moveAmountY >= -bedSizeY && currY + moveAmountY <= 0) { // make sure we won't go outside our bed
         currY += moveAmountY;        
-        console.log("moveY: " + moveAmountY + "  currPositionY: " + currY);
-        sendCommand('move Y ' + moveAmountY + ' 5000');
+        //console.log("moveY: " + moveAmountY + "  currPositionY: " + currY);
+        sendCommand('move Y ' + moveAmountY + ' 8000');
         //lastCommandTime = new Date().getTime();
+        updateOccurred = true;
       }
 
+    }
+
+    if (updateOccurred) {
+      var print = {
+        id: update.id,
+        inX: update.x,
+        inY: update.y,
+        desiredX: desiredX,
+        desiredY: desiredY,
+        moveX: moveAmountX,
+        moveY: moveAmountY,
+        currX: currX,
+        currY: currY
+      };
+      console.log(print);
     }
     
   }
