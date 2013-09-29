@@ -65,7 +65,7 @@ end
         
         obj.blobAnalyser = vision.BlobAnalysis('BoundingBoxOutputPort', true, ...
             'AreaOutputPort', true, 'CentroidOutputPort', true, ...
-            'MinimumBlobArea', 200,'MaximumCount',2);
+            'MinimumBlobArea', 200,'MaximumBlobArea', 2000, 'MaximumCount',3);
     end
 % Initialize Tracks
 
@@ -101,8 +101,8 @@ end
     function frame = readFrame()
     %        frame = obj.reader.step();
         fdata = arecont(2);
-        frame=im2double(imresize(fdata.im,0.5));
-        %frame=im2double(fdata.im);
+        %frame=im2double(imresize(fdata.im,0.5));
+        frame=im2double(fdata.im);
         frame(:,:,1)=mean(frame,3);
         frame(:,:,2)=frame(:,:,1);
         frame(:,:,3)=frame(:,:,1);
