@@ -1,0 +1,4 @@
+
+
+Pronsole
+connect /dev/cu.usbmodemfd121 230400

@@ -46,55 +46,13 @@ var InputBlockCtrl = function ($scope) {
 
 app.controller('MyCtrl1', function ($scope, $http, $injector) {
 
-  // inject the state of InputBlockCtrl
-  $injector.invoke(InputBlockCtrl, this, {$scope: $scope});
+  $scope.connectPrinter = function() {
+    $http.get('/api/connectPrinter').then(function(response) {
+      console.log("response: " + JSON.stringify(response));
+    });
 
-  // input1
-  $scope.inputs.push({
-    name : "input1",
-    value : 300,
-    type : "number",
-    helpText : "",
-    mappedProperty : "mappedProperty1"
-
-  });
-
-  // input2
-  $scope.inputs.push({    
-    name : "input2",
-    value : "Value",
-    type : "text",      
-    typeahead : "value.name for value in getMatches($viewValue, $index)",
-    helpText : "(optional)",
-    mappedProperty : function(item) {
-      return item.name;
-    },
-    typeaheadResults : [],
-    selectedObj : null,
-    typeaheadFetch : function(searchText, callback) {        
-      // example function returning promise, and then results
-      return $http.jsonp("http://gd.geobytes.com/AutoCompleteCity?callback=JSON_CALLBACK &filter=US&q="+searchText).then(function(response){
-        var results = [{name : "salmon agah"}, {name : "jose fernandez"}, {name : "elissa steamer"}];
-        return callback(results);
-      });
-    },
-    checkValidity : function() {
-      var valid = false;
-      for (var i = 0; i < this.typeaheadResults.length; i++) {
-        if (this.typeaheadResults[i].name === this.value) {
-          console.log("exact typeahead match!");
-          this.selectedObj = this.typeaheadResults[i];
-          valid = true;
-          break;
-        } 
-      }
-
-      // reset selectedObj to null if we don't have a match
-      if (!valid) {
-        this.selectedObj = null;
-      }
-    }
-  });
+    console.log("connect the printer!");
+  };
 
 });
 
