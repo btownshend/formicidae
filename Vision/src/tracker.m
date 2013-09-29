@@ -1,4 +1,4 @@
-function cvexample()
+function tracker()
 % Create system objects used for reading video, detecting moving objects,
 % and displaying the results.
 obj = setupSystemObjects();
@@ -8,7 +8,8 @@ tracks = initializeTracks(); % Create an empty array of tracks.
 nextId = 1; % ID of the next track
 
 % Detect moving objects, and track them across video frames.
-while ~isDone(obj.reader)
+%while ~isDone(obj.reader)
+while true
     frame = readFrame();
     [centroids, bboxes, mask] = detectObjects(frame);
     predictNewLocationsOfTracks();
@@ -35,7 +36,7 @@ end
         % objects in each frame, and playing the video.
         
         % Create a video file reader.
-        obj.reader = vision.VideoFileReader('ants2-sm.mov');
+    %obj.reader = vision.VideoFileReader('ants2-sm.mov');
         
         % Create two video players, one to display the video,
         % and one to display the foreground mask.
@@ -92,7 +93,12 @@ end
 % Read the next video frame from the video file.
 
     function frame = readFrame()
-        frame = obj.reader.step();
+    %        frame = obj.reader.step();
+        fdata = arecont(2);
+        frame=im2double(imresize(fdata.im,0.5));
+        frame(:,:,1)=mean(frame,3);
+        frame(:,:,2)=frame(:,:,1);
+        frame(:,:,3)=frame(:,:,1);
     end
 % Detect Objects
 
