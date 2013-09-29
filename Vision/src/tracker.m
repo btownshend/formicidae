@@ -16,7 +16,7 @@ fid = fopen('log.txt', 'at');
 while true
     fcnt=fcnt+1;
     frame = readFrame();
-    [centroids, bboxes, mask] = detectObjects(frame);
+    [centroids, bboxes, mask, areas] = detectObjects(frame);
     predictNewLocationsOfTracks();
     [assignments, unassignedTracks, unassignedDetections] = ...
         detectionToTrackAssignment();
@@ -88,6 +88,7 @@ end
         tracks = struct(...
             'id', {}, ...
             'bbox', {}, ...
+            'area', {}, ...
             'kalmanFilter', {}, ...
             'age', {}, ...
             'totalVisibleCount', {}, ...
@@ -112,7 +113,7 @@ end
 
 % The function performs motion segmentation using the foreground detector. It then performs morphological operations on the resulting binary mask to remove noisy pixels and to fill the holes in the remaining blobs.
 
-    function [centroids, bboxes, mask] = detectObjects(frame)
+    function [centroids, bboxes, mask, area] = detectObjects(frame)
         
         % Detect foreground.
         mask = obj.detector.step(frame);
@@ -122,7 +123,7 @@ end
         mask = imfill(mask, 'holes');
         
         % Perform blob analysis to find connected components.
-        [~, centroids, bboxes] = obj.blobAnalyser.step(mask);
+        [area, centroids, bboxes] = obj.blobAnalyser.step(mask);
     end
 % Predict New Locations of Existing Tracks
 
@@ -182,6 +183,7 @@ end
             trackIdx = assignments(i, 1);
             detectionIdx = assignments(i, 2);
             centroid = centroids(detectionIdx, :);
+            area = areas(detectionIdx,:);
             bbox = bboxes(detectionIdx, :);
             
             % Correct the estimate of the object's location
@@ -191,7 +193,7 @@ end
             % Replace predicted bounding box with detected
             % bounding box.
             tracks(trackIdx).bbox = bbox;
-            
+            tracks(trackIdx).area = area;
             % Update track's age.
             tracks(trackIdx).age = tracks(trackIdx).age + 1;
             
@@ -250,11 +252,13 @@ end
     function createNewTracks()
         centroids = centroids(unassignedDetections, :);
         bboxes = bboxes(unassignedDetections, :);
+        areas = areas(unassignedDetections, :);
         
         for i = 1:size(centroids, 1)
             
             centroid = centroids(i,:);
             bbox = bboxes(i, :);
+            area = areas(i, :);
             
             % Create a Kalman filter object.
             kalmanFilter = configureKalmanFilter('ConstantVelocity', ...
@@ -264,6 +268,7 @@ end
             newTrack = struct(...
                 'id', nextId, ...
                 'bbox', bbox, ...
+                'area', area, ...
                 'kalmanFilter', kalmanFilter, ...
                 'age', 1, ...
                 'totalVisibleCount', 1, ...
@@ -315,7 +320,9 @@ end
                 isPredicted = cell(size(labels));
                 isPredicted(predictedTrackInds) = {' predicted'};
                 labels = strcat(labels, isPredicted);
-                
+                for i=1:length(labels)
+                  labels{i}=sprintf('%s (%d)',labels{i},reliableTracks(i).area);
+                end
                 % Draw the objects on the frame.
                 frame = insertObjectAnnotation(frame, 'rectangle', ...
                     bboxes, labels);
@@ -328,7 +335,7 @@ end
                 for i=1:length(reliableTracks)
                   r=reliableTracks(i);
                   bb=double(r.bbox);
-                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,elapsed(),int32(r.id),(bb(2)+bb(4)/2)/648.0,(bb(1)+bb(3)/2)/704.0,0.0,0.0);
+                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f (area=%.1f)\n', fcnt,elapsed(),int32(r.id),(bb(2)+bb(4)/2)/648.0,(bb(1)+bb(3)/2)/704.0,0.0,0.0,r.area);
                   fprintf(out);
                   fprintf(fid, out);
                   oscmsgout({'VA','PM','VD'},'/vt/update',{int32(fcnt),elapsed(),int32(r.id),(bb(2)+bb(4)/2.0)/648.0,(bb(1)+bb(3)/2.0)/704.0,0.0,0.0});
