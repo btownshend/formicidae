@@ -63,7 +63,7 @@ end
         
         obj.blobAnalyser = vision.BlobAnalysis('BoundingBoxOutputPort', true, ...
             'AreaOutputPort', true, 'CentroidOutputPort', true, ...
-            'MinimumBlobArea', 100);
+            'MinimumBlobArea', 300);
     end
 % Initialize Tracks
 
@@ -219,7 +219,7 @@ end
             return;
         end
         
-        invisibleForTooLong = 10;
+        invisibleForTooLong = 3;
         ageThreshold = 8;
         
         % Compute the fraction of the track's age for which it was visible.
@@ -267,7 +267,6 @@ end
             
             % Add it to the array of tracks.
             tracks(end + 1) = newTrack;
-            
             fprintf('/vt/entry,%d,%d\n', fcnt,tracks(end).id);
             oscmsgout('VA','/vt/entry',{fcnt,tracks(end).id});
             % Increment the next id.
