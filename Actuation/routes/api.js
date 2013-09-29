@@ -55,7 +55,11 @@ exports.printCommand = function (req, res) {
       sendCommand('home xy');
 
       setTimeout(function() {
+        // reset our dead reckoning positions and update 'connected' to true
+        currX = 0;
+        currY = 0;
         connected = true;
+
         console.log("connected!!");
       }, 5000);
 
@@ -72,29 +76,9 @@ exports.printCommand = function (req, res) {
 
 function sendCommand(command) {
   exports.sockets.emit("print_command", {command : command});
+  lastCommandTime = new Date().getTime();
 }
 
-// OSC
-/*
-var osc = require('node-osc');
-
-var client = new osc.Client('127.0.0.1', 7000);
-
-function spoofTargetsOSC() {
-
-  client.send("/vt/set/ntargets", 2);
-
-  setTimeout(function() {
-    client.send("/vt/update", 'frame', 'timeElapsed', 5, 0.5, 0.5, 0, 0);
-    client.send("/vt/update", 'frame', 'timeElapsed', 2, 0.5, 0.5, 0, 0);
-  }, 10);
-
-  setTimeout(spoofTargetsOSC, 1000);
-}
-
-
-setTimeout(spoofTargetsOSC, 1000);
-*/ 
 
 var osc = require('node-osc');
 var oscServer = new osc.Server(7000, '127.0.0.1');
@@ -107,8 +91,7 @@ oscServer.on("/vt/set/ntargets", function (msg, rinfo) {
     
     var lowestIndex = -1;
     var lowestId = 1000000;    
-    for (var i = 0; i < updates.length; i++) {
-      console.log('update id: ' + updates[i]['id']);
+    for (var i = 0; i < updates.length; i++) {      
       if (updates[i]['id'] < lowestId) {                
         lowestId = updates['id'];
         lowestIndex = i;
@@ -139,8 +122,8 @@ oscServer.on("/vt/update", function (msg, rinfo) {
 
 var connected = false;
 
-var desiredX = 0.5;
-var desiredY = 0.5;
+var desiredX = 0;
+var desiredY = 0;
 
 var maxX = 400;
 var maxY = 400;
@@ -148,9 +131,78 @@ var maxY = 400;
 var currX = 0;
 var currY = 0;
 
+var bedSizeX = 260;
+var bedSizeY = 230;
+
+var stepSize = 5;
+
+var lastCommandTime = 0;
 
 function handleUpdate(update) {
 
-  console.log("handle update: " + update.id)  ;
+  //console.log("handle update: " + update.id);
+
+  if (connected && new Date().getTime() - lastCommandTime > 1000) {
+    desiredX = update.x * bedSizeX;
+    desiredY = update.y * bedSizeY;
+
+    var diffX = desiredX - currX;
+    var diffY = desiredY - currY;
+
+    var directionX = 1;
+    var directionY = 1;
+
+    if (diffX < 0) {
+      directionX = -1;
+    }
+    if (diffY < 0) {
+      directionY = -1;
+    }
+
+    var moveAmountX = stepSize * directionX;
+    var moveAmountY = stepSize * directionY;
+
+    if (Math.abs(desiredX - currX + moveAmountX) > stepSize) { // make sure we need to move at all
+      if (currX + moveAmountX >= 0 && currX + moveAmountX <= bedSizeX) { // make sure we won't go outside our bed
+        currX += moveAmountX;        
+        console.log("moveX: " + moveAmountX + "  currPositionX: " + currX);
+        lastCommandTime = new Date().getTime();
+      }
+
+    }
+
+    if (Math.abs(desiredY - currY + moveAmountY) > stepSize) { // make sure we need to move at all
+      if (currY + moveAmountY >= 0 && currY + moveAmountY <= bedSizeY) { // make sure we won't go outside our bed
+        currY += moveAmountY;        
+        console.log("moveY: " + moveAmountY + "  currPositionY: " + currY);
+        lastCommandTime = new Date().getTime();
+      }
+
+    }
+    
+  }
 
 }
+
+
+// Spoof OSC
+/*
+var osc = require('node-osc');
+
+var client = new osc.Client('127.0.0.1', 7000);
+
+function spoofTargetsOSC() {
+
+  client.send("/vt/set/ntargets", 2);
+
+  setTimeout(function() {
+    client.send("/vt/update", 'frame', 'timeElapsed', 5, 0.5, 0.5, 0, 0);
+    client.send("/vt/update", 'frame', 'timeElapsed', 2, 0.5, 0.5, 0, 0);
+  }, 10);
+
+  setTimeout(spoofTargetsOSC, 1000);
+}
+
+
+setTimeout(spoofTargetsOSC, 1000);
+*/ 

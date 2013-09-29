@@ -4,4 +4,21 @@ Pronsole
 connect /dev/cu.usbmodemfd121 230400
 
 
-/m302
+Project Marlin
+===============
+
+Codes (https://github.com/ErikZalm/Marlin):
+
+> turn off min thermister temp warning: m302
+
+> report back current perceived position:  m114
+
+
+Bed Dimensions:
+260mm x 230mm x 230mm
+
+
+
+
+
+
