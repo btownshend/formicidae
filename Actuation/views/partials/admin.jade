@@ -1,4 +1,14 @@
 div.row
   div.span12
-    h3 Actions
-    a(ng-click="connectPrinter()") Connect Printer
+    form.form
+      fieldset
+        div.control-group
+          div.controls
+            button(ng-click="connectPrinter()").btn.btn-success Connect
+        br
+        div.control-group
+          h4.control-label Command
+          div.controls
+            input(type="text", ng-model="info.command", ng-enter="printCommand()").input-lrg
+
+   

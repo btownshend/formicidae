@@ -48,6 +48,8 @@ app.get('/partials/:name', routes.partials);
 
 // API Routes
 app.get('/api/connectPrinter', api.connectPrinter);
+app.get('/api/moveX', api.moveX);
+app.put('/api/printCommand', api.printCommand);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);
