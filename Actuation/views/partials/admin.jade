@@ -10,5 +10,15 @@ div.row
           h4.control-label Command
           div.controls
             input(type="text", ng-model="info.command", ng-enter="printCommand()").input-lrg
-
-   
+        div.control-group
+          h4.control-label Send Tracking Mode  
+          div.controls
+            span
+              button(ng-click="setTrackingMode(0)").btn Manual
+              span &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              button(ng-click="setTrackingMode(1)").btn Follow
+              //- span Manual &nbsp;
+              //- input(type="radio", ng-model="trackingMode", value="0", ng-click="setTrackingMode()") Manual
+              //- span &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              //- span Follow &nbsp;
+              //- input(type="radio", ng-model="trackingMode", value="1", ng-click="setTrackingMode()") Follow

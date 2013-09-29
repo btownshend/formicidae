@@ -26,4 +26,10 @@ app.controller('AdminCtrl', function ($scope, $http, $injector) {
     });
   }
 
+  $scope.setTrackingMode = function(mode) {
+    console.log("set tracking mode: " + mode);
+    $http.put('/api/setTrackingMode', {mode : mode}).then(function(response) {
+    }); 
+  }
+
 });

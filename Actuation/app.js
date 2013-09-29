@@ -49,6 +49,7 @@ app.get('/partials/:name', routes.partials);
 // API Routes
 app.get('/api/connectPrinter', api.connectPrinter);
 app.put('/api/printCommand', api.printCommand);
+app.put('/api/setTrackingMode', api.setTrackingMode);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

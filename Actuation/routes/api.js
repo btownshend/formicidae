@@ -74,6 +74,21 @@ exports.printCommand = function (req, res) {
 
 };
 
+var TRACKING_MODE_MANUAL = 0;
+var TRACKING_MODE_FOLLOW = 1;
+
+var trackingMode = 0; 
+
+exports.setTrackingMode = function(req, res) {
+  var desiredMode = req.body.mode;
+
+
+  trackingMode = desiredMode;
+
+  console.log("tracking mode is: " + trackingMode);
+
+}
+
 function sendCommand(command) {
   exports.sockets.emit("print_command", {command : command});
   lastCommandTime = new Date().getTime();
@@ -124,24 +139,22 @@ var connected = false;
 
 var desiredX = 0;
 var desiredY = 0;
-
-var maxX = 400;
-var maxY = 400;
-
 var currX = 0;
 var currY = 0;
-
 var bedSizeX = 260;
 var bedSizeY = 230;
-
 var stepSize = 5;
-
 var lastCommandTime = 0;
 
 function handleUpdate(update) {
 
-  //console.log("handle update: " + update.id);
+  if (trackingMode == TRACKING_MODE_FOLLOW) {
+    handleTrackingModeFollowUpdate(update);
+  }
 
+}
+
+function handleTrackingModeFollowUpdate(update) {
   if (connected && new Date().getTime() - lastCommandTime > 1000) {
     desiredX = update.x * bedSizeX;
     desiredY = update.y * bedSizeY;
@@ -166,7 +179,8 @@ function handleUpdate(update) {
       if (currX + moveAmountX >= 0 && currX + moveAmountX <= bedSizeX) { // make sure we won't go outside our bed
         currX += moveAmountX;        
         console.log("moveX: " + moveAmountX + "  currPositionX: " + currX);
-        lastCommandTime = new Date().getTime();
+        sendCommand('move X ' + moveAmountX + ' 5000');
+        //lastCommandTime = new Date().getTime();
       }
 
     }
@@ -175,13 +189,13 @@ function handleUpdate(update) {
       if (currY + moveAmountY >= 0 && currY + moveAmountY <= bedSizeY) { // make sure we won't go outside our bed
         currY += moveAmountY;        
         console.log("moveY: " + moveAmountY + "  currPositionY: " + currY);
-        lastCommandTime = new Date().getTime();
+        sendCommand('move Y ' + moveAmountY + ' 5000');
+        //lastCommandTime = new Date().getTime();
       }
 
     }
     
   }
-
 }
 
 
