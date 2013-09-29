@@ -27,6 +27,7 @@ while true
     createNewTracks();
     
     displayTrackingResults();
+    oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
 end
 
 
@@ -243,7 +244,6 @@ end
 
         % Delete lost tracks.
         tracks = tracks(~lostInds);
-        oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
     end
 % Create New Tracks
 
@@ -281,7 +281,6 @@ end
             % Increment the next id.
             nextId = nextId + 1;
         end
-        oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
     end
 % Display Tracking Results
 
