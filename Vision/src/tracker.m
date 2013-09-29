@@ -65,7 +65,7 @@ end
         
         obj.blobAnalyser = vision.BlobAnalysis('BoundingBoxOutputPort', true, ...
             'AreaOutputPort', true, 'CentroidOutputPort', true, ...
-            'MinimumBlobArea', 300);
+            'MinimumBlobArea', 200,'MaximumCount',2);
     end
 % Initialize Tracks
 
@@ -101,6 +101,7 @@ end
     %        frame = obj.reader.step();
         fdata = arecont(2);
         frame=im2double(imresize(fdata.im,0.5));
+        %frame=im2double(fdata.im);
         frame(:,:,1)=mean(frame,3);
         frame(:,:,2)=frame(:,:,1);
         frame(:,:,3)=frame(:,:,1);
@@ -117,7 +118,7 @@ end
         mask = obj.detector.step(frame);
         % Apply morphological operations to remove noise and fill in holes.
         mask = imopen(mask, strel('rectangle', [3,3]));
-        mask = imclose(mask, strel('rectangle', [15, 15]));
+        mask = imclose(mask, strel('rectangle', [20, 20]));
         mask = imfill(mask, 'holes');
         
         % Perform blob analysis to find connected components.
@@ -221,7 +222,7 @@ end
             return;
         end
         
-        invisibleForTooLong = 3;
+        invisibleForTooLong = 10;
         ageThreshold = 8;
         
         % Compute the fraction of the track's age for which it was visible.
