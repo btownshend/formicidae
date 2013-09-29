@@ -2,6 +2,7 @@ function tracker()
 % Create system objects used for reading video, detecting moving objects,
 % and displaying the results.
 obj = setupSystemObjects();
+warning('off','MATLAB:imagesci:jpg:libraryMessage');
 
 tracks = initializeTracks(); % Create an empty array of tracks.
 
