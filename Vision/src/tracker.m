@@ -7,10 +7,12 @@ warning('off','MATLAB:imagesci:jpg:libraryMessage');
 tracks = initializeTracks(); % Create an empty array of tracks.
 
 nextId = 1; % ID of the next track
+fcnt=0;
 
 % Detect moving objects, and track them across video frames.
 %while ~isDone(obj.reader)
 while true
+    fcnt=fcnt+1;
     frame = readFrame();
     [centroids, bboxes, mask] = detectObjects(frame);
     predictNewLocationsOfTracks();
@@ -229,6 +231,11 @@ end
         lostInds = (ages < ageThreshold & visibility < 0.6) | ...
             [tracks(:).consecutiveInvisibleCount] >= invisibleForTooLong;
         
+        for i=find(lostInds)
+          fprintf('/vt/exit,%d,%d\n', fcnt,tracks(i).id);
+          oscmsgout('VA','/vt/exit',{fcnt,tracks(i).id});
+        end
+
         % Delete lost tracks.
         tracks = tracks(~lostInds);
     end
@@ -261,6 +268,8 @@ end
             % Add it to the array of tracks.
             tracks(end + 1) = newTrack;
             
+            fprintf('/vt/entry,%d,%d\n', fcnt,tracks(end).id);
+            oscmsgout('VA','/vt/entry',{fcnt,tracks(end).id});
             % Increment the next id.
             nextId = nextId + 1;
         end
@@ -310,6 +319,15 @@ end
                 % Draw the objects on the mask.
                 mask = insertObjectAnnotation(mask, 'rectangle', ...
                     bboxes, labels);
+
+                % Send updates
+                for i=1:length(reliableTracks)
+                  r=reliableTracks(i);
+                  bb=double(r.bbox);
+                  fprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,now,r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
+                  oscmsgout('VA','/vt/update',{fcnt,now,r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
+                  keyboard
+                end
             end
         end
         
