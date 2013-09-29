@@ -14,7 +14,7 @@ OSC Messages from VT (vision tracker)
 
 /vt/stopped - when VT stops
 
-/vt/update samp target x y vx vy group - update position of target
+/vt/update samp t target x y vx vy - update position of target
      samp - sample number
      t - time of sample (elapsed time in seconds since beginning of run)
      target - UID of target
