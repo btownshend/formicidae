@@ -17,12 +17,12 @@ public abstract class Visualizer {
 			parent.textSize(45);
 			parent.stroke(255);
 			final float lineSize=wsize.y/8;
-			parent.text("Looking for", wsize.x/2,wsize.y/2-lineSize);
+			parent.text("Welcome to the", wsize.x/2,wsize.y/2-lineSize);
 			parent.textSize(60);
-			parent.text("ANIMALS", wsize.x/2,wsize.y/2);
+			parent.text("PULSEFIELD", wsize.x/2,wsize.y/2);
 			parent.textSize(45);
-			//parent.text(name, wsize.x/2,wsize.y/2+lineSize);
-			//parent.text("Please enter...", wsize.x/2,wsize.y/2+2.5f*lineSize);
+			parent.text(name, wsize.x/2,wsize.y/2+lineSize);
+			parent.text("Please enter...", wsize.x/2,wsize.y/2+2.5f*lineSize);
 		}
 	}
 
@@ -35,7 +35,6 @@ public abstract class Visualizer {
 	public void setName(String name) { this.name=name; }
 	
 	public void drawBorders(PApplet parent, boolean octagon, PVector wsize) {
-		octagon=false;
 		if (octagon) {
 			parent.beginShape();
 			float gapAngle=(float)(10f*Math.PI /180);

@@ -88,7 +88,7 @@ public class Tracker extends PApplet {
 		// Setup OSC handlers
 		oscP5.plug(this, "pfframe", "/vt/frame");
 		oscP5.plug(this, "pfupdate", "/vt/update");
-		oscP5.plug(this, "pfsetnpeople", "/vt/set/ntargets");
+		oscP5.plug(this, "pfsetnpeople", "/vt/set/npeople");
 		oscP5.plug(this, "pfexit", "/vt/exit");
 		oscP5.plug(this, "pfentry", "/vt/entry");
 		oscP5.plug(this, "pfsetminx", "/vt/set/minx");
