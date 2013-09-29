@@ -325,7 +325,6 @@ end
                   bb=double(r.bbox);
                   fprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f\n', fcnt,now,r.id,(bb(1)+bb(3)/2)/648.0,(bb(2)+bb(4)/2)/704.0,0.0,0.0);
                   oscmsgout('VA','/vt/update',{fcnt,now,r.id,(bb(1)+bb(3)/2.0)/648.0,(bb(2)+bb(4)/2.0)/704.0,0.0,0.0});
-                  keyboard
                 end
             end
         end
