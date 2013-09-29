@@ -4,8 +4,6 @@ exports.sockets = null;
 // var client = new osc.Client('127.0.0.1', 3333);
 // client.send('/oscAddress', 200);
 
-
-
 exports.connectPrinter = function (req, res) {
 
   //console.log("Sockets: " + JSON.stringify(exports.sockets.getConnections()));
@@ -39,15 +37,6 @@ exports.connectPrinter = function (req, res) {
   });
 };
 
-exports.moveX = function (req, res) {
-  //console.log("Sockets: " + JSON.stringify(exports.sockets.getConnections()));
-  exports.sockets.emit("print_command", {command : "move X 10 5000"});
-  console.log("moveX");
-
-  res.json({
-    name: 'MoveX response'
-  });
-};
 
 exports.printCommand = function (req, res) {
   var command = req.body.command;
@@ -55,16 +44,35 @@ exports.printCommand = function (req, res) {
   if (command === 'home') {
     command = "home xy";
     console.log("don't go home you dumbass--you're going to kill the speciman");    
+
+  } else if (command.length > 7 && command.substring(0,7) == 'connect') {
+    
+    console.log('received connect command');
+
+
+    setTimeout(function() {
+      console.log("sending 'home xy' command");
+      sendCommand('home xy');
+
+      setTimeout(function() {
+        connected = true;
+        console.log("connected!!");
+      }, 5000);
+
+    }, 2000);
   }
 
-  exports.sockets.emit("print_command", {command : command});
-  console.log("print command");
+  sendCommand(command);
 
   res.json({
     name: 'print command response'
   });
 
 };
+
+function sendCommand(command) {
+  exports.sockets.emit("print_command", {command : command});
+}
 
 // OSC
 /*
@@ -89,25 +97,19 @@ setTimeout(spoofTargetsOSC, 1000);
 */ 
 
 var osc = require('node-osc');
-
 var oscServer = new osc.Server(7000, '127.0.0.1');
 //var oscServer = new osc.Server(7000, '0.0.0.0');
 
-
-// oscServer.on("message", function (msg, rinfo) {
-//       console.log(msg);
-// });
-
 var updates = null;
-
 
 oscServer.on("/vt/set/ntargets", function (msg, rinfo) {
   if (updates) {
     
     var lowestIndex = -1;
-    var lowestId = 1000000;
+    var lowestId = 1000000;    
     for (var i = 0; i < updates.length; i++) {
-      if (updates['id'] < lowestId) {
+      console.log('update id: ' + updates[i]['id']);
+      if (updates[i]['id'] < lowestId) {                
         lowestId = updates['id'];
         lowestIndex = i;
       }
@@ -117,18 +119,35 @@ oscServer.on("/vt/set/ntargets", function (msg, rinfo) {
     }
   }
   updates = [];
-  console.log("newFrame");
 });
 
 oscServer.on("/vt/update", function (msg, rinfo) {
-  console.log('update');
+
   if (!updates) {
     updates = [];
   }
-  updates.push({id : msg[3]});
-
-  //console.log(msg[3]);
+  updates.push({
+    frame : msg[1],
+    time : msg[2],
+    id : msg[3],
+    x : msg[4],
+    y : msg[5],
+    vx : msg[6],
+    vy : msg[7]});
 });
+
+
+var connected = false;
+
+var desiredX = 0.5;
+var desiredY = 0.5;
+
+var maxX = 400;
+var maxY = 400;
+
+var currX = 0;
+var currY = 0;
+
 
 function handleUpdate(update) {
 
