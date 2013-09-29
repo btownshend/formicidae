@@ -45,8 +45,8 @@ if (app.get('env') === 'production') {
 app.get('/', routes.index);
 app.get('/partials/:name', routes.partials);
 
-// JSON API
-app.get('/api/name', api.name);
+
+// API Routes
 app.get('/api/connectPrinter', api.connectPrinter);
 
 // redirect all others to the index (HTML5 history)
@@ -57,11 +57,11 @@ app.get('*', routes.index);
  * Start Server
  */
 
-http.createServer(app).listen(app.get('port'), function () {
+var server = http.createServer(app).listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-var io = require('socket.io').listen(8000);
+io = require('socket.io').listen(server);
 
 io.sockets.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
@@ -69,3 +69,6 @@ io.sockets.on('connection', function (socket) {
     console.log(data);
   });
 });
+
+api.sockets = io.sockets;
+

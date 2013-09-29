@@ -11,16 +11,12 @@ angular.module('myApp', [
 ]).
 config(function ($routeProvider, $locationProvider) {
   $routeProvider.
-    when('/typeahead', {
-      templateUrl: 'partials/partial1',
-      controller: 'MyCtrl1'
-    }).
-    when('/view2', {
-      templateUrl: 'partials/partial2',
-      controller: 'MyCtrl2'
+    when('/admin', {
+      templateUrl: 'partials/admin',
+      controller: 'AdminCtrl'
     }).
     otherwise({
-      redirectTo: '/view1'
+      redirectTo: '/admin'
     });
 
   $locationProvider.html5Mode(true);

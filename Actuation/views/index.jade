@@ -2,18 +2,13 @@ extends layout
 
 block body
   div(ng-controller='AppCtrl')
-    h2 Hello {{name}}
-    ul.menu
-      li
-        a(href='typeahead') typeahead
-      li
-        a(href='view2') view2
-
-    div(ng-view)
-
-    div
-      | Angular seed app: v
-      span(app-version)
+    div.navbar
+      div.navbar-inner
+        div.container-fluid.navbar-contents
+          a(href="/", ng-click="brandClick()").brand Formicidae
+          ul.nav
+            li()
+    div(ng-view).span12
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/ui-bootstrap/ui-bootstrap-tpls-0.4.0.js')
