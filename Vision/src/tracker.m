@@ -27,7 +27,7 @@ while true
     createNewTracks();
     
     displayTrackingResults();
-    oscmsgout({'VA','PM','VD'},'/vt/set/ntargets',{length(tracks)});
+    oscmsgout({'VA','VD'},'/vt/set/ntargets',{int32(length(tracks))});
 end
 
 
@@ -239,7 +239,7 @@ end
         
         for i=find(lostInds)
           fprintf('/vt/exit,%d,%f,%d\n', fcnt,elapsed(),tracks(i).id);
-          oscmsgout({'VA','PM','VD'},'/vt/exit',{int32(fcnt),elapsed(),int32(tracks(i).id)});
+          oscmsgout({'VA','VD'},'/vt/exit',{int32(fcnt),elapsed(),int32(tracks(i).id)});
         end
 
         % Delete lost tracks.
@@ -341,7 +341,7 @@ end
                   out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f (area=%.1f)\n', fcnt,elapsed(),int32(r.id),xpos,ypos,0.0,0.0,r.area);
                   fprintf(out);
                   fprintf(fid, out);
-                  oscmsgout({'VA','PM','VD'},'/vt/update',{int32(fcnt),elapsed(),int32(r.id),(bb(2)+bb(4)/2.0)/648.0,(bb(1)+bb(3)/2.0)/704.0,0.0,0.0});
+                  oscmsgout({'VA','VD'},'/vt/update',{int32(fcnt),elapsed(),int32(r.id),xpos,ypos,0.0,0.0});
                 end
             end
         end
