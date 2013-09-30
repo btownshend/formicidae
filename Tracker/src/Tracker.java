@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.io.IOException;
 import java.util.Calendar;
+
 import processing.core.PApplet;
 import oscP5.*;
 import netP5.*;
@@ -26,7 +27,7 @@ public class Tracker extends PApplet {
 	String visnames[]={"Pads","Navier","Tron","Ableton","DDR","Poly","Voronoi","Guitar"};
 	String vispos[]={"5/1","5/2","5/3","5/4","5/5","4/1","4/2","4/3"};
 	int currentvis=-1;
-	static NetAddress TO, MPO, AL, MAX;
+	static NetAddress TO, MPO, AL, MAX, PM;
 	Positions positions;
 	Ableton ableton;
 	boolean useMAX;
@@ -38,7 +39,7 @@ public class Tracker extends PApplet {
 	AutoCycler cycler;
 
 	public void setup() {
-		configFile="/Users/bst/DropBox/Pulsefield/config/urlconfig.txt";
+		configFile="/Users/bst/DropBox/formicidae/config/urlconfig.txt";
 
 		try {
 			config=new URLConfig(configFile);
@@ -59,6 +60,7 @@ public class Tracker extends PApplet {
 		oscP5 = new OscP5(this, config.getPort("VD"));
 
 		TO = new NetAddress(config.getHost("TO"), config.getPort("TO"));
+		PM = new NetAddress(config.getHost("PM"), config.getPort("PM"));
 		MPO = new NetAddress(config.getHost("MPO"), config.getPort("MPO"));
 		AL = new NetAddress(config.getHost("AL"), config.getPort("AL"));
 		PApplet.println("AL at "+config.getHost("AL")+":"+config.getPort("AL"));
@@ -181,10 +183,21 @@ public class Tracker extends PApplet {
 			vis[currentvis].stats();
 		}
 
-		if (mousePressed) 
+		if (mousePressed) {
 			positions.move(mouseID, mouseID%16, new PVector(mouseX*2f/width-1, mouseY*2f/height-1), mouseID, 1, tick/avgFrameRate);
-
-
+			OscMessage msg=new OscMessage("/vt/update");
+			msg.add(0);
+			msg.add(0.0);
+			msg.add(1);
+			msg.add(mouseX*1f/width);
+			msg.add(mouseY*1f/height);
+			msg.add(1.0f);
+			msg.add(1.0f);
+			oscP5.send(msg,PM);
+			msg=new OscMessage("/vt/set/ntargets");
+			msg.add(1);
+			oscP5.send(msg,PM);
+		}
 		vis[currentvis].update(this, positions);
 		//		translate((width-height)/2f,0);
 
@@ -262,7 +275,7 @@ public class Tracker extends PApplet {
 			PApplet.println(",channel="+channel);
 		} */
 		//ypos=-ypos;
-		positions.move(id, id, mapposition(xpos, ypos), 0, 1, elapsed);
+		positions.move(id, id, mapposition(ypos, xpos), 0, 1, elapsed);
 	}
 
 	public void pfsetminx(float minx) {  
