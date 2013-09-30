@@ -9,3 +9,9 @@ Workspace/
 *.snap
 
 *.class
+
+Workspace/.metadata/.plugins/org.eclipse.core.resources/.root/.indexes/properties.index
+
+Workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.ui.prefs
+
+Workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.ui.prefs
