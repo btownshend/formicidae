@@ -334,7 +334,11 @@ end
                 for i=1:length(reliableTracks)
                   r=reliableTracks(i);
                   bb=double(r.bbox);
-                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f (area=%.1f)\n', fcnt,elapsed(),int32(r.id),(bb(2)+bb(4)/2)/648.0,(bb(1)+bb(3)/2)/704.0,0.0,0.0,r.area);
+                  xpos=(bb(1)+bb(3)/2)/size(frame,2);
+                  ypos=(bb(2)+bb(4)/2)/size(frame,1);
+                  xpos=max(min(xpos,1.0),0.0);
+                  ypos=max(min(ypos,1.0),0.0);
+                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f (area=%.1f)\n', fcnt,elapsed(),int32(r.id),xpos,ypos,0.0,0.0,r.area);
                   fprintf(out);
                   fprintf(fid, out);
                   oscmsgout({'VA','PM','VD'},'/vt/update',{int32(fcnt),elapsed(),int32(r.id),(bb(2)+bb(4)/2.0)/648.0,(bb(1)+bb(3)/2.0)/704.0,0.0,0.0});
