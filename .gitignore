@@ -1,3 +1,11 @@
 .DS_Store
 
 *.mov
+
+Vision/src/log.txt
+
+Workspace/
+
+*.snap
+
+*.class

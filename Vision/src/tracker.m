@@ -1,16 +1,22 @@
-function cvexample()
+function tracker()
 % Create system objects used for reading video, detecting moving objects,
 % and displaying the results.
 obj = setupSystemObjects();
+warning('off','MATLAB:imagesci:jpg:libraryMessage');
+starttime=now;
 
 tracks = initializeTracks(); % Create an empty array of tracks.
 
 nextId = 1; % ID of the next track
+fcnt=0;
+fid = fopen('log.txt', 'at');
 
 % Detect moving objects, and track them across video frames.
-while ~isDone(obj.reader)
+%while ~isDone(obj.reader)
+while true
+    fcnt=fcnt+1;
     frame = readFrame();
-    [centroids, bboxes, mask] = detectObjects(frame);
+    [centroids, bboxes, mask, areas] = detectObjects(frame);
     predictNewLocationsOfTracks();
     [assignments, unassignedTracks, unassignedDetections] = ...
         detectionToTrackAssignment();
@@ -21,6 +27,7 @@ while ~isDone(obj.reader)
     createNewTracks();
     
     displayTrackingResults();
+    oscmsgout({'VA','VD'},'/vt/set/ntargets',{int32(length(tracks))});
 end
 
 
@@ -35,7 +42,7 @@ end
         % objects in each frame, and playing the video.
         
         % Create a video file reader.
-        obj.reader = vision.VideoFileReader('ants2-sm.mov');
+    %obj.reader = vision.VideoFileReader('ants2-sm.mov');
         
         % Create two video players, one to display the video,
         % and one to display the foreground mask.
@@ -59,7 +66,7 @@ end
         
         obj.blobAnalyser = vision.BlobAnalysis('BoundingBoxOutputPort', true, ...
             'AreaOutputPort', true, 'CentroidOutputPort', true, ...
-            'MinimumBlobArea', 400);
+            'MinimumBlobArea', 200,'MaximumBlobArea', 2000, 'MaximumCount',3);
     end
 % Initialize Tracks
 
@@ -82,6 +89,7 @@ end
         tracks = struct(...
             'id', {}, ...
             'bbox', {}, ...
+            'area', {}, ...
             'kalmanFilter', {}, ...
             'age', {}, ...
             'totalVisibleCount', {}, ...
@@ -92,7 +100,13 @@ end
 % Read the next video frame from the video file.
 
     function frame = readFrame()
-        frame = obj.reader.step();
+    %        frame = obj.reader.step();
+        fdata = arecont(2);
+        %frame=im2double(imresize(fdata.im,0.5));
+        frame=im2double(fdata.im);
+        frame(:,:,1)=mean(frame,3);
+        frame(:,:,2)=frame(:,:,1);
+        frame(:,:,3)=frame(:,:,1);
     end
 % Detect Objects
 
@@ -100,18 +114,17 @@ end
 
 % The function performs motion segmentation using the foreground detector. It then performs morphological operations on the resulting binary mask to remove noisy pixels and to fill the holes in the remaining blobs.
 
-    function [centroids, bboxes, mask] = detectObjects(frame)
+    function [centroids, bboxes, mask, area] = detectObjects(frame)
         
         % Detect foreground.
         mask = obj.detector.step(frame);
-        
         % Apply morphological operations to remove noise and fill in holes.
         mask = imopen(mask, strel('rectangle', [3,3]));
-        mask = imclose(mask, strel('rectangle', [15, 15]));
+        mask = imclose(mask, strel('rectangle', [20, 20]));
         mask = imfill(mask, 'holes');
         
         % Perform blob analysis to find connected components.
-        [~, centroids, bboxes] = obj.blobAnalyser.step(mask);
+        [area, centroids, bboxes] = obj.blobAnalyser.step(mask);
     end
 % Predict New Locations of Existing Tracks
 
@@ -157,7 +170,7 @@ end
         end
         
         % Solve the assignment problem.
-        costOfNonAssignment = 10;
+        costOfNonAssignment = 80;
         [assignments, unassignedTracks, unassignedDetections] = ...
             assignDetectionsToTracks(cost, costOfNonAssignment);
     end
@@ -171,6 +184,7 @@ end
             trackIdx = assignments(i, 1);
             detectionIdx = assignments(i, 2);
             centroid = centroids(detectionIdx, :);
+            area = areas(detectionIdx,:);
             bbox = bboxes(detectionIdx, :);
             
             % Correct the estimate of the object's location
@@ -180,7 +194,7 @@ end
             % Replace predicted bounding box with detected
             % bounding box.
             tracks(trackIdx).bbox = bbox;
-            
+            tracks(trackIdx).area = area;
             % Update track's age.
             tracks(trackIdx).age = tracks(trackIdx).age + 1;
             
@@ -223,6 +237,11 @@ end
         lostInds = (ages < ageThreshold & visibility < 0.6) | ...
             [tracks(:).consecutiveInvisibleCount] >= invisibleForTooLong;
         
+        for i=find(lostInds)
+          fprintf('/vt/exit,%d,%f,%d\n', fcnt,elapsed(),tracks(i).id);
+          oscmsgout({'VA','VD'},'/vt/exit',{int32(fcnt),elapsed(),int32(tracks(i).id)});
+        end
+
         % Delete lost tracks.
         tracks = tracks(~lostInds);
     end
@@ -233,11 +252,13 @@ end
     function createNewTracks()
         centroids = centroids(unassignedDetections, :);
         bboxes = bboxes(unassignedDetections, :);
+        areas = areas(unassignedDetections, :);
         
         for i = 1:size(centroids, 1)
             
             centroid = centroids(i,:);
             bbox = bboxes(i, :);
+            area = areas(i, :);
             
             % Create a Kalman filter object.
             kalmanFilter = configureKalmanFilter('ConstantVelocity', ...
@@ -247,6 +268,7 @@ end
             newTrack = struct(...
                 'id', nextId, ...
                 'bbox', bbox, ...
+                'area', area, ...
                 'kalmanFilter', kalmanFilter, ...
                 'age', 1, ...
                 'totalVisibleCount', 1, ...
@@ -254,7 +276,8 @@ end
             
             % Add it to the array of tracks.
             tracks(end + 1) = newTrack;
-            
+            fprintf('/vt/entry,%d,%f,%d\n', fcnt,elapsed(),tracks(end).id);
+            oscmsgout('VA','/vt/entry',{fcnt,elapsed(),tracks(end).id});
             % Increment the next id.
             nextId = nextId + 1;
         end
@@ -296,7 +319,9 @@ end
                 isPredicted = cell(size(labels));
                 isPredicted(predictedTrackInds) = {' predicted'};
                 labels = strcat(labels, isPredicted);
-                
+                for i=1:length(labels)
+                  labels{i}=sprintf('%s (%d)',labels{i},reliableTracks(i).area);
+                end
                 % Draw the objects on the frame.
                 frame = insertObjectAnnotation(frame, 'rectangle', ...
                     bboxes, labels);
@@ -304,6 +329,20 @@ end
                 % Draw the objects on the mask.
                 mask = insertObjectAnnotation(mask, 'rectangle', ...
                     bboxes, labels);
+
+                % Send updates
+                for i=1:length(reliableTracks)
+                  r=reliableTracks(i);
+                  bb=double(r.bbox);
+                  xpos=(bb(1)+bb(3)/2)/size(frame,2);
+                  ypos=(bb(2)+bb(4)/2)/size(frame,1);
+                  xpos=max(min(xpos,1.0),0.0);
+                  ypos=max(min(ypos,1.0),0.0);
+                  out = sprintf('/vt/update,%d,%f,%d,%f,%f,%f,%f (area=%.1f)\n', fcnt,elapsed(),int32(r.id),xpos,ypos,0.0,0.0,r.area);
+                  fprintf(out);
+                  fprintf(fid, out);
+                  oscmsgout({'VA','VD'},'/vt/update',{int32(fcnt),elapsed(),int32(r.id),xpos,ypos,0.0,0.0});
+                end
             end
         end
         
@@ -312,6 +351,8 @@ end
         obj.videoPlayer.step(frame);
     end
 
-
+    function t=elapsed() 
+      t=(now-starttime)*24*3600;
+    end
 end
 
