@@ -15,3 +15,7 @@ Workspace/.metadata/.plugins/org.eclipse.core.resources/.root/.indexes/propertie
 Workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.ui.prefs
 
 Workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.ui.prefs
+
+*.mp4
+
+SFHackDay Talk/Formicidael-Opponent.key
